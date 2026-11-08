@@ -1,0 +1,26 @@
+{
+	"$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+	"notGrouped": "bottom",
+	"groupings": [
+		{
+			"title": "Support inbox",
+			"description": "Read and answer customer conversations, triage the inbox, look up customers, and manage feature requests, the changelog and help center articles through the relay CLI, MCP server or REST API.",
+			"skills": ["superrelay"]
+		},
+		{
+			"title": "Chat widget",
+			"description": "Add the Superrelay live chat widget to any website or web app, identify signed-in users and verify their identity on your server.",
+			"skills": ["superrelay-widget"]
+		},
+		{
+			"title": "Help center",
+			"description": "Keep your help center in the repository as Markdown: write articles, then check, diff and push them to Superrelay.",
+			"skills": ["superrelay-docs"]
+		},
+		{
+			"title": "Releases",
+			"description": "Turn the commits since your last tag into a changelog entry, link the feature requests it ships and notify their voters.",
+			"skills": ["superrelay-release"]
+		}
+	]
+}
