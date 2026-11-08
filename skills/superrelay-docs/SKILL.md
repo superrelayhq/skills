@@ -5,7 +5,7 @@ description: Keep a Superrelay help center in a repository as Markdown files. Pu
 
 # Superrelay help center as code
 
-A Superrelay knowledge base (the articles behind a help center) can live in the repository as Markdown and sync both ways with the `relay` CLI (`npm i -g @superrelay/cli` or `npx @superrelay/cli`). The key needs `knowledge_bases:read` and `knowledge_bases:write`.
+A [Superrelay](https://superrelay.com/agents) knowledge base (the articles behind a help center) can live in the repository as Markdown and sync both ways with the `relay` CLI (`npm i -g @superrelay/cli` or `npx @superrelay/cli`). The key needs `knowledge_bases:read` and `knowledge_bases:write`.
 
 ## First look
 

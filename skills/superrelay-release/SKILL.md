@@ -5,7 +5,7 @@ description: Turn the commits since the last release into a Superrelay changelog
 
 # Superrelay release
 
-Draft and publish a changelog entry for what shipped since the last release. Everything goes through the `relay` CLI (`npm i -g @superrelay/cli`, then `relay config --api-key rl_live_…` or set `RELAY_API_KEY`) or the MCP tools with the same names. The key needs `feature_requests:read`, `feature_requests:write`, `changelog:read`, `changelog:write` and `products:read`; write scopes do not imply read.
+Draft and publish a [Superrelay](https://superrelay.com/agents) changelog entry for what shipped since the last release. Everything goes through the `relay` CLI (`npm i -g @superrelay/cli`, then `relay config --api-key rl_live_…` or set `RELAY_API_KEY`) or the MCP tools with the same names. The key needs `feature_requests:read`, `feature_requests:write`, `changelog:read`, `changelog:write` and `products:read`; write scopes do not imply read.
 
 ## Steps
 
