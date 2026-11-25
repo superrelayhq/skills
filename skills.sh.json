@@ -4,7 +4,7 @@
 	"groupings": [
 		{
 			"title": "Support inbox",
-			"description": "Read and answer customer conversations, triage the inbox, look up customers, and manage feature requests, the changelog and help center articles through the relay CLI, MCP server or REST API.",
+			"description": "Read and answer customer conversations and help desk tickets, triage the inbox, look up customers, and manage feature requests, the changelog and help center articles through the relay CLI, MCP server or REST API.",
 			"skills": ["superrelay"]
 		},
 		{

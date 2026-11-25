@@ -27,6 +27,20 @@ IDs accept a prefix of at least four characters. Each also works as `relay conve
 | `relay assign <id> [userId]` | Assign (`--unassign`) |
 | `relay create --contact <id>` | New conversation (`--inbox`, `--product <id\|none>`) |
 
+## Help desk tickets
+
+CLI 3.4+. `relay ticket` is an alias. `<ticket>` is a display id (`HD-12`) or id.
+
+| Command | Does |
+| --- | --- |
+| `relay tickets list` (`ls`) | `--search`, `--status <key>`, `--priority`, `--owner <userId\|none>`, `--contact`, `--company`, `--product <id\|none>`, `--conversation`, `--limit` (1–100), `--all`, `--cursor` |
+| `relay tickets show <ticket>` (`view`) | Ticket with public replies, newest first (`--limit`, `--cursor`) |
+| `relay tickets statuses` | Workflow stage keys for `--status` |
+| `relay tickets create --title <t>` | `--description` or `--file <path\|->`, `--status`, `--priority`, `--owner`, `--category`, `--due <ISO>`, `--contact <id>` or `--email` (+ `--name`), `--company`, `--product`, `--conversation`, `--key`; emails a linked customer |
+| `relay tickets update <ticket>` (`edit`) | `--title`, `--description`/`--file`, `--status`, `--priority`, `--owner`, `--category`, `--due`; an empty value clears; a status change emails the customer |
+| `relay tickets reply <ticket> [message]` | Public Markdown reply (`--file`, `--key`); emails the customer |
+| `relay tickets delete <ticket>` (`rm`) | Permanent, no prompt |
+
 ## Contacts, companies, products
 
 | Command | Does |

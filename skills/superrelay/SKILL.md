@@ -1,11 +1,11 @@
 ---
 name: superrelay
-description: Work in a Superrelay customer support workspace from the terminal or an agent. Read and answer conversations, triage them (status, priority, labels, assignee), look up contacts and companies, manage feature requests, changelog entries and help center articles through the `relay` CLI, the MCP server or the REST API. Use when the user mentions Superrelay or Relay support, asks to check or reply to support conversations, triage the inbox, find a customer, update a feature request, or edit help center articles.
+description: Work in a Superrelay customer support workspace from the terminal or an agent. Read and answer conversations, triage them (status, priority, labels, assignee), open, update, reply to and close help desk tickets, look up contacts and companies, manage feature requests, changelog entries and help center articles through the `relay` CLI, the MCP server or the REST API. Use when the user mentions Superrelay or Relay support, asks to check or reply to support conversations or tickets, triage the inbox, find a customer, update a feature request, or edit help center articles.
 ---
 
 # Superrelay
 
-[Superrelay](https://superrelay.com) is a support platform: live chat widget, email and WhatsApp inbox, AI agents, help center, feature request board and changelog. Everything in a workspace is reachable three ways, all backed by the same public API and the same API key scopes:
+[Superrelay](https://superrelay.com) is a support platform: live chat widget, email and WhatsApp inbox, help desk tickets, AI agents, help center, feature request board and changelog. Everything in a workspace is reachable three ways, all backed by the same public API and the same API key scopes:
 
 | Way | Best for | Setup |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Prefer the CLI when you can run commands: every command takes `--json`, IDs acce
 ## Setup
 
 1. Check for credentials: `relay doctor` (or `relay config --show`). `RELAY_API_KEY` and `RELAY_API_URL` in the environment override stored config.
-2. If there is no key, ask the user to create one in the Superrelay dashboard under **Settings → API Keys** (it starts with `rl_live_`). Never invent one and never print it back.
+2. If there is no key, ask the user to create one in the Superrelay dashboard under **Connections → API keys** (it starts with `rl_live_`). Never invent one and never print it back.
 3. Store it with `relay config --api-key <key>`, or export `RELAY_API_KEY` for one session or CI.
 
 To connect the MCP server in Claude Code instead:
@@ -27,15 +27,16 @@ To connect the MCP server in Claude Code instead:
 claude mcp add --transport http superrelay https://api.superrelay.com/v1/mcp
 ```
 
-then `/mcp` to sign in. Owners and admins get every tool; members connect read-only.
+then `/mcp` to sign in. Owners and admins get every tool; members connect read-only. The dashboard's **Connections** page shows the same setup for Claude, ChatGPT and Grok, and lists every connected app.
 
 ### Scopes
 
-A key only does what its scopes allow; a missing scope fails with an error naming it. Write scopes do not imply read.
+A key only does what its scopes allow; a missing scope fails with an error naming it. Write scopes do not imply read. A key keeps the scopes it was created with, and keys cannot be edited: a key made before a scope existed (such as `tickets:*`, added November 2026) needs replacing. An MCP connection approved before then lists the ticket tools but gets a missing-scope error calling them until the person reconnects.
 
 | Scope | Allows |
 | --- | --- |
 | `conversations:read` / `conversations:write` | Read conversations and messages / reply, create, change status, priority, labels, assignee |
+| `tickets:read` / `tickets:write` | Read help desk tickets and their public replies / open, edit, reply to and delete tickets |
 | `contacts:read` / `contacts:write` | Read / create and update contacts |
 | `companies:read` / `companies:write` | Read / create and update companies |
 | `products:read` | List products |
@@ -48,6 +49,7 @@ A key only does what its scopes allow; a missing scope fails with an error namin
 - **Workspace**: one company's Superrelay account. A key belongs to one workspace.
 - **Product**: what the workspace supports (an app, a site). Conversations, requests, changelog entries and knowledge bases belong to a product. `relay products --json` lists them. When a workspace has several, ask which one before writing anything.
 - **Conversation**: one thread with a customer over chat, email or WhatsApp. Status `open`, `pending` or `resolved`; priority `low`, `medium`, `high`, `urgent` or none.
+- **Ticket**: a help desk ticket, addressed by its display id (`HD-12`) or id. Its `status` is one of the workspace's workflow stage keys (`relay tickets statuses`; `open` and `done` always exist); priority `low`, `medium`, `high` or `urgent`. Descriptions and replies are Markdown. Internal notes are not available through the CLI, MCP or API.
 - **Contact** and **company**: the customer and the organization they belong to.
 - **Knowledge base**: the articles behind a help center. Articles are `draft` or `published`.
 - **Feature request** and **changelog entry**: the public roadmap board and release notes. Publishing an entry completes its linked requests and tells their voters.
@@ -86,6 +88,23 @@ relay reply <id> --file reply.md                     # or --file - for stdin
 ```
 
 A reply reaches the customer right away, in their chat or by email if they are offline. Read the conversation first, draft the reply, and show it to the user before sending unless they told you to send it.
+
+### Help desk tickets
+
+Needs CLI 3.4 or later (`relay --version`); the MCP tools are `list_tickets`, `get_ticket`, `create_ticket`, `update_ticket`, `reply_to_ticket` and `delete_ticket`.
+
+```bash
+relay tickets list --status open --priority urgent --json
+relay tickets list --search "invoice" --json         # title, HD-12, customer, company
+relay tickets show HD-12 --json                      # with public replies, newest first
+relay tickets statuses --json                        # the stage keys --status takes
+relay tickets create --title "Export fails" --email jane@example.com --file details.md
+relay tickets update HD-12 --status done --owner <userId>
+relay tickets reply HD-12 "Fixed in today's release. Can you try again?"
+relay tickets delete HD-12                           # permanent, see guardrails
+```
+
+`create` emails a linked customer that the ticket was opened; a status change and every reply email them too. Show the user what will go out first.
 
 ### Customers
 
@@ -127,12 +146,13 @@ To keep a help center in a folder of Markdown files with pull, diff and push, us
 
 - `--json` prints results to stdout and structured errors to stderr; a nonzero exit means failure.
 - Lists return `{ data, has_more, next_cursor }`. Pass `--cursor <next_cursor>` or use `--all`.
-- Reads retry on 429/502/503/504 (`--retries`, default 2). Writes are never retried automatically; `requests create`, `changelog draft` and `changelog publish` take an idempotency key, so rerunning the same input resumes instead of duplicating.
+- Reads retry on 429/502/503/504 (`--retries`, default 2). Writes are never retried automatically; `requests create`, `changelog draft`, `changelog publish` and `tickets create` take an idempotency key, so rerunning the same input resumes instead of duplicating (`tickets reply` only with `--key`).
 - `relay <command> --help` lists every flag. The full command list is in [references/cli.md](references/cli.md); REST and MCP details are in [references/api.md](references/api.md).
 
 ## Guardrails
 
-- **Ask before anything a customer sees**: `relay reply`, `relay changelog publish` (completes requests, emails voters, replies to and closes their tickets), `relay kb publish` and pushing published articles. Show what will go out and wait for a yes.
+- **Ask before anything a customer sees**: `relay reply`, `relay tickets create`, `relay tickets reply`, a ticket status change, `relay changelog publish` (completes requests, emails voters, replies to and closes their tickets), `relay kb publish` and pushing published articles. Show what will go out and wait for a yes.
+- **Ask before deleting a ticket**: `relay tickets delete` and `delete_ticket` remove it with its replies and history, cannot be undone and do not prompt. Prefer moving it to `done`.
 - Never paste conversation content, customer emails or phone numbers into places outside the workspace (issues, commits, public docs) without the user's say-so.
 - Never link a feature request from another product, and never guess a request match; a wrong link emails the wrong voters.
 - Keep the API key out of files you commit, logs and replies.
